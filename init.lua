@@ -49,14 +49,17 @@ minetest.register_node("stefcia:brick", {
 		-- after_place_node = function(...)
 		after_place_node = function(pos, placer, itemstack, pointed_thing)
 		print("Lets build a house together!")
-		make_x_wall(pos, 6, 5)
-		make_z_wall(pos, 6, 5)
-		make_x_wall(vector.add(pos, {x = 0, y = 0, z = 6}),6, 5)
-		make_z_wall(vector.add(pos, {x = 6, y = 0, z = 0}),6, 5)
-		make_flat_roof(vector.add(pos, {x = 0, y = 5, z = 0}), 6,6 )
+		-- Remove original thrown node
+		minetest.remove_node(pos)
+		local npos = vector.subtract(placer:get_pos(), {x = 3, y = 0, z = 3})
+		make_x_wall(npos, 6, 5)
+		make_z_wall(npos, 6, 5)
+		make_x_wall(vector.add(npos, {x = 0, y = 0, z = 6}),6, 5)
+		make_z_wall(vector.add(npos, {x = 6, y = 0, z = 0}),6, 5)
+		make_flat_roof(vector.add(npos, {x = 0, y = 5, z = 0}), 6,6 )
 		-- Space for door
-		minetest.remove_node(vector.add(pos, {x = 1, y = 0, z = 0}))
-		minetest.remove_node(vector.add(pos, {x = 1, y = 1, z = 0}))
+		minetest.remove_node(vector.add(npos, {x = 1, y = 0, z = 0}))
+		minetest.remove_node(vector.add(npos, {x = 1, y = 1, z = 0}))
 --		minetest.set_node(vector.add(pos, {x = 1, y = 0, z = 0}), { name = "doors:gate_wood" })
 		--minetest.set_node(vector.add(pos, {x = 1, y = 0, z = 0}), { name = "beds:bed_bottom" })
 	--	minetest.set_node(vector.add(pos, {x = 1, y = 0, z = 0}), { name = "default:wood" })
@@ -64,4 +67,4 @@ minetest.register_node("stefcia:brick", {
     end,
 		})
 
-
+-- TODO: Get player position and build house around him
