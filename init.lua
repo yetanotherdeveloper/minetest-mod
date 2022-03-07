@@ -40,6 +40,67 @@ local function make_flat_roof(start_pos, length, width)
    end
 end
 
+local function replace_nodes_in_area(pos, src_name, dst_name, depth)
+	local target_node = minetest.get_node_or_nil(pos)
+	if  target_node ~= nil and target_node.name == src_name  and target_node.name ~= dst_name and depth < 200 then 
+		minetest.set_node(pos , { name = dst_name})
+		-- And then do the same for neighbours
+		local npos = vector.add(pos, {x = 1, y = 0, z = 0})
+		replace_nodes_in_area(npos, src_name, dst_name, depth+1)
+		npos = vector.add(pos, {x = -1, y = 0, z = 0})
+		replace_nodes_in_area(npos, src_name, dst_name, depth+1)
+		npos = vector.add(pos, {x =  1, y = 0, z = 1})
+		replace_nodes_in_area(npos, src_name, dst_name, depth+1)
+		npos = vector.add(pos, {x = -1, y = 0, z = -1})
+		replace_nodes_in_area(npos, src_name, dst_name, depth+1)
+		npos = vector.add(pos, {x =  0, y = 0, z = 1})
+		replace_nodes_in_area(npos, src_name, dst_name, depth+1)
+		npos = vector.add(pos, {x = 0, y = 0, z = -1})
+		replace_nodes_in_area(npos, src_name, dst_name, depth+1)
+		npos = vector.add(pos, {x =  1, y = 0, z = -1})
+		replace_nodes_in_area(npos, src_name, dst_name, depth+1)
+		npos = vector.add(pos, {x =  -1, y = 0, z = 1})
+		replace_nodes_in_area(npos, src_name, dst_name, depth+1)
+		-- Add upper 
+		npos = vector.add(pos, {x = 0, y = 1, z = 0})
+		replace_nodes_in_area(npos, src_name, dst_name, depth+1)
+		npos = vector.add(pos, {x = 1, y = 1, z = 0})
+		replace_nodes_in_area(npos, src_name, dst_name, depth+1)
+		npos = vector.add(pos, {x = -1, y = 1, z = 0})
+		replace_nodes_in_area(npos, src_name, dst_name, depth+1)
+		npos = vector.add(pos, {x =  1, y = 1, z = 1})
+		replace_nodes_in_area(npos, src_name, dst_name, depth+1)
+		npos = vector.add(pos, {x = -1, y = 1, z = -1})
+		replace_nodes_in_area(npos, src_name, dst_name, depth+1)
+		npos = vector.add(pos, {x =  0, y = 1, z = 1})
+		replace_nodes_in_area(npos, src_name, dst_name, depth+1)
+		npos = vector.add(pos, {x = 0, y = 1, z = -1})
+		replace_nodes_in_area(npos, src_name, dst_name, depth+1)
+		npos = vector.add(pos, {x =  1, y = 1, z = -1})
+		replace_nodes_in_area(npos, src_name, dst_name, depth+1)
+		npos = vector.add(pos, {x =  -1, y = 1, z = 1})
+		replace_nodes_in_area(npos, src_name, dst_name, depth+1)
+		-- lower
+		npos = vector.add(pos, {x = 0, y = -1, z = 0})
+		replace_nodes_in_area(npos, src_name, dst_name, depth+1)
+		npos = vector.add(pos, {x = 1, y = -1, z = 0})
+		replace_nodes_in_area(npos, src_name, dst_name, depth+1)
+		npos = vector.add(pos, {x = -1, y = -1, z = 0})
+		replace_nodes_in_area(npos, src_name, dst_name, depth+1)
+		npos = vector.add(pos, {x =  1, y = -1, z = 1})
+		replace_nodes_in_area(npos, src_name, dst_name, depth+1)
+		npos = vector.add(pos, {x = -1, y = -1, z = -1})
+		replace_nodes_in_area(npos, src_name, dst_name, depth+1)
+		npos = vector.add(pos, {x =  0, y = -1, z = 1})
+		replace_nodes_in_area(npos, src_name, dst_name, depth+1)
+		npos = vector.add(pos, {x = 0, y = -1, z = -1})
+		replace_nodes_in_area(npos, src_name, dst_name, depth+1)
+		npos = vector.add(pos, {x =  1, y = -1, z = -1})
+		replace_nodes_in_area(npos, src_name, dst_name, depth+1)
+		npos = vector.add(pos, {x =  -1, y = -1, z = 1})
+		replace_nodes_in_area(npos, src_name, dst_name, depth+1)
+	end
+end
 
 minetest.register_node("stefcia:brick", {
 	    description = "Stefcia brick test",
@@ -67,4 +128,44 @@ minetest.register_node("stefcia:brick", {
     end,
 		})
 
--- TODO: Get player position and build house around him
+-- Brick which turns other bric into grass
+minetest.register_node("stefcia:brick2", {
+	    description = "Kasia brick test",
+	        tiles = { "temporary.png" },
+		diggable = true,
+		sunlight_propagates = true,
+		on_use = function(itemstack, user, pointed_thing)
+		--after_use = function(itemstack, user, node, digparams)
+			print("Let there be a grass")
+
+			if pointed_thing.type == "node" then
+				local pos =  pointed_thing.under
+				-- Check type of node 'under' and then for all nodes of this type set a grass
+				local pointed_node = minetest.get_node_or_nil(pos)
+				-- If there is node at "under" position. Then
+				-- get type of node and turn all of nodes of this type into grass
+				if  pointed_node ~= nil then 
+					print("Node on under: ".. pointed_node.name)
+					local node_to_replace = pointed_node.name
+						
+					replace_nodes_in_area(pos , pointed_node.name, "default:dirt_with_grass", 0)
+				end
+			end
+		    end,
+		})
+
+-- Register global function on_punch and if type is stefcia:brick2 then set new node
+--minetest.register_on_punchnode(
+
+--function(pos, node, puncher, pointed_thing)
+-- if activate item is stefcia:brick2 then make a grass
+--if puncher:is_player() then
+--	print("player punchin")
+--end	
+--minetest.set_node(pos, { name = "default:dirt_with_grass" })
+--end
+
+--)
+
+-- puncher:is_player() ,
+-- TODO: Get puncher used item
