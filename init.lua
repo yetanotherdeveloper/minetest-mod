@@ -102,17 +102,32 @@ local function replace_nodes_in_area(pos, src_name, dst_name, depth)
 	end
 end
 
+local function replace_neighbourhood(pointed_thing, dst_node_type)
+
+	if pointed_thing.type == "node" then
+		local pos =  pointed_thing.under
+		-- Check type of node 'under' and then for all nodes of this type set a grass
+		local pointed_node = minetest.get_node_or_nil(pos)
+		-- If there is node at "under" position. Then
+		-- get type of node and turn all of nodes of this type into grass
+		if  pointed_node ~= nil then 
+			print("Node on under: ".. pointed_node.name)
+			local node_to_replace = pointed_node.name
+			replace_nodes_in_area(pos , pointed_node.name, dst_node_type, 0)
+		end
+	end
+end 
+
+-- TODO (change so that left click activate it)
 minetest.register_node("stefcia:brick", {
 	    description = "Stefcia brick test",
-	        tiles = { "stefcia-head.png" },
+	        tiles = { "stefcia_head.png" },
 		diggable = true,
 		sunlight_propagates = true,
-		-- after_place_node = function(...)
-		after_place_node = function(pos, placer, itemstack, pointed_thing)
+		on_use = function(itemstack, user, pointed_thing)
 		print("Lets build a house together!")
 		-- Remove original thrown node
-		minetest.remove_node(pos)
-		local npos = vector.subtract(placer:get_pos(), {x = 3, y = 0, z = 3})
+		local npos = vector.subtract(user:get_pos(), {x = 3, y = 0, z = 3})
 		make_x_wall(npos, 6, 5)
 		make_z_wall(npos, 6, 5)
 		make_x_wall(vector.add(npos, {x = 0, y = 0, z = 6}),6, 5)
@@ -121,38 +136,61 @@ minetest.register_node("stefcia:brick", {
 		-- Space for door
 		minetest.remove_node(vector.add(npos, {x = 1, y = 0, z = 0}))
 		minetest.remove_node(vector.add(npos, {x = 1, y = 1, z = 0}))
---		minetest.set_node(vector.add(pos, {x = 1, y = 0, z = 0}), { name = "doors:gate_wood" })
-		--minetest.set_node(vector.add(pos, {x = 1, y = 0, z = 0}), { name = "beds:bed_bottom" })
-	--	minetest.set_node(vector.add(pos, {x = 1, y = 0, z = 0}), { name = "default:wood" })
-	--	minetest.set_node(vector.add(pos, {x = 1, y = 0, z = 0}), { name = "default:ladder_wood" })
     end,
 		})
 
 -- Brick which turns other bric into grass
 minetest.register_node("stefcia:brick2", {
-	    description = "Kasia brick test",
-	        tiles = { "temporary.png" },
+	    description = "let plant some grass",
+	        tiles = { "stefcia_tempgrass.png" },
 		diggable = true,
 		sunlight_propagates = true,
 		on_use = function(itemstack, user, pointed_thing)
 		--after_use = function(itemstack, user, node, digparams)
 			print("Let there be a grass")
-
-			if pointed_thing.type == "node" then
-				local pos =  pointed_thing.under
-				-- Check type of node 'under' and then for all nodes of this type set a grass
-				local pointed_node = minetest.get_node_or_nil(pos)
-				-- If there is node at "under" position. Then
-				-- get type of node and turn all of nodes of this type into grass
-				if  pointed_node ~= nil then 
-					print("Node on under: ".. pointed_node.name)
-					local node_to_replace = pointed_node.name
-						
-					replace_nodes_in_area(pos , pointed_node.name, "default:dirt_with_grass", 0)
-				end
-			end
+			replace_neighbourhood(pointed_thing, "default:dirt_with_grass")
 		    end,
 		})
+
+-- Brick which turns other nodes into brick
+minetest.register_node("stefcia:brick3", {
+	    description = "Brick them all",
+	        tiles = { "stefcia_tempbrick.png" },
+		diggable = true,
+		sunlight_propagates = true,
+		on_use = function(itemstack, user, pointed_thing)
+		--after_use = function(itemstack, user, node, digparams)
+			print("Let there be a brick")
+			replace_neighbourhood(pointed_thing, "default:brick")
+		    end,
+		})
+
+-- Brick which turns other nodes into water
+minetest.register_node("stefcia:brick4", {
+	    description = "Flood them all",
+	        tiles = { "stefcia_tempwater.png" },
+		diggable = true,
+		sunlight_propagates = true,
+		on_use = function(itemstack, user, pointed_thing)
+		--after_use = function(itemstack, user, node, digparams)
+			print("Let there be a water")
+			replace_neighbourhood(pointed_thing, "default:water_source")
+		    end,
+		})
+
+-- Brick which turns other nodes into water
+minetest.register_node("stefcia:brick5", {
+	    description = "Burn them all",
+	        tiles = { "stefcia_templava.png" },
+		diggable = true,
+		sunlight_propagates = true,
+		on_use = function(itemstack, user, pointed_thing)
+		--after_use = function(itemstack, user, node, digparams)
+			print("Let there be fire")
+			replace_neighbourhood(pointed_thing, "default:lava_source")
+		    end,
+		})
+
 
 -- Register global function on_punch and if type is stefcia:brick2 then set new node
 --minetest.register_on_punchnode(
